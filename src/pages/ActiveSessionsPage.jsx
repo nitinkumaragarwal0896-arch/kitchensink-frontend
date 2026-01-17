@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { sessionAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { 
   Monitor, 
@@ -11,10 +12,12 @@ import {
   MapPin,
   Trash2,
   LogOut,
-  AlertCircle
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
 
 const ActiveSessionsPage = () => {
+  const { logout } = useAuth();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,27 +27,40 @@ const ActiveSessionsPage = () => {
 
   const fetchSessions = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.get('/api/v1/sessions', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      setLoading(true);
+      const refreshToken = localStorage.getItem('refreshToken');
+      const response = await sessionAPI.getAll(refreshToken);
       setSessions(response.data);
     } catch (error) {
+      console.error('Failed to fetch sessions:', error);
       toast.error('Failed to fetch active sessions');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRevokeSession = async (sessionId) => {
+  const handleRevokeSession = async (sessionId, isCurrent) => {
+    if (isCurrent) {
+      const confirmed = window.confirm(
+        '⚠️ Warning: You are about to revoke your CURRENT session.\n\n' +
+        'This will log you out immediately. Are you sure?'
+      );
+      if (!confirmed) return;
+    }
+
     try {
-      const token = localStorage.getItem('accessToken');
-      await axios.delete(`/api/v1/sessions/${sessionId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success('Session revoked successfully');
-      fetchSessions();
+      const refreshToken = localStorage.getItem('refreshToken');
+      const response = await sessionAPI.revoke(sessionId, refreshToken);
+      
+      if (response.data.isCurrentSession) {
+        toast.success('Current session revoked. Logging out...');
+        setTimeout(() => logout(), 1500); // Give user time to see the message
+      } else {
+        toast.success('Session revoked successfully');
+        fetchSessions();
+      }
     } catch (error) {
+      console.error('Failed to revoke session:', error);
       toast.error('Failed to revoke session');
     }
   };
@@ -55,13 +71,11 @@ const ActiveSessionsPage = () => {
     }
 
     try {
-      const token = localStorage.getItem('accessToken');
-      await axios.post('/api/v1/auth/logout-all', {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await sessionAPI.logoutAll();
       toast.success('Logged out from all devices');
       fetchSessions();
     } catch (error) {
+      console.error('Failed to logout from all devices:', error);
       toast.error('Failed to logout from all devices');
     }
   };
@@ -97,13 +111,13 @@ const ActiveSessionsPage = () => {
           <h1 className="font-display text-2xl font-bold text-surface-800">Active Sessions</h1>
           <p className="text-surface-500">Manage your active login sessions across devices</p>
         </div>
-        {sessions.length > 0 && (
+        {sessions.length > 1 && (
           <button
             onClick={handleLogoutAll}
             className="btn-danger flex items-center gap-2"
           >
             <LogOut className="w-5 h-5" />
-            Logout All Devices
+            Logout All Other Devices
           </button>
         )}
       </div>
@@ -140,22 +154,33 @@ const ActiveSessionsPage = () => {
           {sessions.map((session, index) => {
             const DeviceIcon = getDeviceIcon(session.deviceInfo);
             const BrowserIcon = getBrowserIcon(session.deviceInfo);
+            const isCurrent = session.isCurrent;
 
             return (
               <div 
                 key={session.id} 
-                className="card p-6 hover:shadow-lg transition-shadow animate-fade-in"
+                className={`card p-6 hover:shadow-lg transition-shadow animate-fade-in ${
+                  isCurrent ? 'ring-2 ring-brand-500' : ''
+                }`}
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center">
-                      <DeviceIcon className="w-6 h-6 text-brand-600" />
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      isCurrent ? 'bg-brand-600' : 'bg-brand-100'
+                    }`}>
+                      <DeviceIcon className={`w-6 h-6 ${isCurrent ? 'text-white' : 'text-brand-600'}`} />
                     </div>
                     <div>
                       <h3 className="font-semibold text-surface-800 flex items-center gap-2">
                         <BrowserIcon className="w-4 h-4" />
                         {session.deviceInfo}
+                        {isCurrent && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 text-xs font-medium">
+                            <CheckCircle className="w-3 h-3" />
+                            Current
+                          </span>
+                        )}
                       </h3>
                       <p className="text-sm text-surface-500 flex items-center gap-1">
                         <MapPin className="w-3 h-3" />
@@ -164,9 +189,13 @@ const ActiveSessionsPage = () => {
                     </div>
                   </div>
                   <button
-                    onClick={() => handleRevokeSession(session.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Revoke this session"
+                    onClick={() => handleRevokeSession(session.id, isCurrent)}
+                    className={`p-2 rounded-lg transition-colors ${
+                      isCurrent 
+                        ? 'text-orange-600 hover:bg-orange-50' 
+                        : 'text-red-600 hover:bg-red-50'
+                    }`}
+                    title={isCurrent ? "Revoke current session (will logout)" : "Revoke this session"}
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -201,9 +230,13 @@ const ActiveSessionsPage = () => {
           <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-blue-900">
             <p className="font-semibold mb-1">Session Management</p>
-            <p className="text-blue-700">
+            <p className="text-blue-700 mb-2">
               You can have up to <strong>5 active sessions</strong> at a time. When you exceed this limit, the oldest session will be automatically logged out. 
-              Use "Logout All Devices" if you suspect unauthorized access.
+              Use "Logout All Other Devices" if you suspect unauthorized access.
+            </p>
+            <p className="text-blue-700 text-xs mt-2 border-t border-blue-200 pt-2">
+              <strong>Note:</strong> After revoking a session, the access token remains valid for up to 15 minutes, but the user cannot get a new access token. 
+              If you revoke your current session, you will be logged out immediately.
             </p>
           </div>
         </div>
@@ -213,4 +246,3 @@ const ActiveSessionsPage = () => {
 };
 
 export default ActiveSessionsPage;
-

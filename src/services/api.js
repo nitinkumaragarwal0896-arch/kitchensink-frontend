@@ -95,4 +95,17 @@ export const roleAPI = {
   getPermissions: () => api.get('/admin/roles/permissions'),
 };
 
+// Session APIs
+export const sessionAPI = {
+  getAll: (currentRefreshToken) => {
+    const params = currentRefreshToken ? `?currentRefreshToken=${encodeURIComponent(currentRefreshToken)}` : '';
+    return api.get(`/sessions${params}`);
+  },
+  revoke: (sessionId, currentRefreshToken) => {
+    const params = currentRefreshToken ? `?currentRefreshToken=${encodeURIComponent(currentRefreshToken)}` : '';
+    return api.delete(`/sessions/${sessionId}${params}`);
+  },
+  logoutAll: () => api.post('/auth/logout-all'),
+};
+
 export default api;
