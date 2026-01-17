@@ -154,8 +154,8 @@ const LoginPage = () => {
                 Demo Credentials
               </p>
               <div className="space-y-1 text-sm text-surface-600">
-                <p><span className="font-mono bg-surface-200 px-1 rounded">user</span> / <span className="font-mono bg-surface-200 px-1 rounded">user12345</span> - Standard user</p>
-                <p><span className="font-mono bg-surface-200 px-1 rounded">admin</span> / <span className="font-mono bg-surface-200 px-1 rounded">admin123</span> - Administrator</p>
+                <p><span className="font-mono bg-surface-200 px-1 rounded">user</span> / <span className="font-mono bg-surface-200 px-1 rounded">User@2024</span> - Standard user</p>
+                <p><span className="font-mono bg-surface-200 px-1 rounded">admin</span> / <span className="font-mono bg-surface-200 px-1 rounded">Admin@2024</span> - Administrator</p>
               </div>
             </div>
           </div>
