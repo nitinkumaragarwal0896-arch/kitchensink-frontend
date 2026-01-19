@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from './LanguageSelector';
+import RecentActivity from './RecentActivity';
+import JobsSidebar from './JobsSidebar';
+import JobDetailsModal from './JobDetailsModal';
 import { 
   Users, 
   UserCircle, 
@@ -17,9 +22,17 @@ import {
 
 const Layout = () => {
   const { user, logout, isAdmin } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [jobDetailsOpen, setJobDetailsOpen] = useState(false);
+
+  const handleJobClick = (job) => {
+    setSelectedJob(job);
+    setJobDetailsOpen(true);
+  };
 
   const handleLogout = () => {
     logout();
@@ -27,14 +40,14 @@ const Layout = () => {
   };
 
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/members', label: 'Members', icon: Users },
-    { path: '/sessions', label: 'Active Sessions', icon: Monitor },
+    { path: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
+    { path: '/members', label: t('nav.members'), icon: Users },
+    { path: '/sessions', label: t('nav.sessions'), icon: Monitor },
   ];
 
   const adminItems = [
-    { path: '/admin/users', label: 'User Management', icon: UserCircle },
-    { path: '/admin/roles', label: 'Role Management', icon: Shield },
+    { path: '/admin/users', label: t('nav.users'), icon: UserCircle },
+    { path: '/admin/roles', label: t('nav.roles'), icon: Shield },
   ];
 
   const NavItem = ({ item, onClick }) => (
@@ -68,6 +81,7 @@ const Layout = () => {
       <aside className={`
         fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-surface-200
         transform transition-transform duration-300 ease-in-out
+        flex flex-col
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}>
@@ -85,7 +99,7 @@ const Layout = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-1">
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {navItems.map((item) => (
             <NavItem key={item.path} item={item} onClick={() => setSidebarOpen(false)} />
           ))}
@@ -103,6 +117,14 @@ const Layout = () => {
             </>
           )}
         </nav>
+
+        {/* Recent Activity Feed */}
+        <RecentActivity />
+
+        {/* Jobs Sidebar - Shows background jobs */}
+        <div className="mt-auto">
+          <JobsSidebar onJobClick={handleJobClick} />
+        </div>
       </aside>
 
       {/* Main content */}
@@ -120,6 +142,9 @@ const Layout = () => {
 
             {/* Right side */}
             <div className="flex items-center gap-4 ml-auto">
+              {/* Language Selector */}
+              <LanguageSelector />
+              
               {/* User dropdown */}
               <div className="relative">
                 <button
@@ -164,14 +189,14 @@ const Layout = () => {
                         className="w-full flex items-center gap-2 px-4 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors"
                       >
                         <User className="w-4 h-4" />
-                        My Profile
+                        {t('nav.profile')}
                       </Link>
                       <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
-                        Sign out
+                        {t('nav.logout')}
                       </button>
                     </div>
                   </>
@@ -186,6 +211,16 @@ const Layout = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Job Details Modal */}
+      <JobDetailsModal 
+        job={selectedJob}
+        isOpen={jobDetailsOpen}
+        onClose={() => {
+          setJobDetailsOpen(false);
+          setSelectedJob(null);
+        }}
+      />
     </div>
   );
 };

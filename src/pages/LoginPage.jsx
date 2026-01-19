@@ -48,21 +48,6 @@ const LoginPage = () => {
             A modern member registration system built with Spring Boot and MongoDB. 
             Secure, scalable, and production-ready.
           </p>
-          
-          <div className="mt-12 space-y-4">
-            <div className="flex items-center gap-3 text-surface-300">
-              <div className="w-2 h-2 bg-brand-500 rounded-full" />
-              <span>JWT Authentication</span>
-            </div>
-            <div className="flex items-center gap-3 text-surface-300">
-              <div className="w-2 h-2 bg-brand-500 rounded-full" />
-              <span>Role-Based Access Control</span>
-            </div>
-            <div className="flex items-center gap-3 text-surface-300">
-              <div className="w-2 h-2 bg-brand-500 rounded-full" />
-              <span>RESTful API</span>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -157,17 +142,6 @@ const LoginPage = () => {
                 Register
               </Link>
             </p>
-
-            {/* Demo credentials */}
-            <div className="mt-6 p-4 bg-surface-100 rounded-lg">
-              <p className="text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">
-                Demo Credentials
-              </p>
-              <div className="space-y-1 text-sm text-surface-600">
-                <p><span className="font-mono bg-surface-200 px-1 rounded">user</span> / <span className="font-mono bg-surface-200 px-1 rounded">User@2024</span> - Standard user</p>
-                <p><span className="font-mono bg-surface-200 px-1 rounded">admin</span> / <span className="font-mono bg-surface-200 px-1 rounded">Admin@2024</span> - Administrator</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>

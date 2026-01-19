@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { memberAPI } from '../services/api';
 import { Users, UserPlus, Shield, Activity, TrendingUp, User, Mail, Phone } from 'lucide-react';
 import Modal from '../components/Modal';
@@ -9,6 +10,7 @@ import { validateField } from '../utils/validation';
 
 const DashboardPage = () => {
   const { user, isAdmin } = useAuth();
+  const { t } = useTranslation();
   const [stats, setStats] = useState({
     totalMembers: 0,
     recentMembers: [],
@@ -77,13 +79,13 @@ const DashboardPage = () => {
     setSubmitting(true);
     try {
       await memberAPI.create(formData);
-      toast.success('Member added successfully!');
+      toast.success(t('toast.addSuccess'));
       setShowAddModal(false);
       setFormData({ name: '', email: '', phoneNumber: '' });
       setFormErrors({});
       fetchStats(); // Refresh stats
     } catch (error) {
-      const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to add member';
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || t('toast.operationFailed');
       toast.error(errorMsg);
       
       // Highlight field with error if backend specifies it
@@ -162,7 +164,7 @@ const DashboardPage = () => {
         <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
         <div className="relative z-10">
           <h1 className="font-display text-3xl font-bold text-white mb-2">
-            Welcome back, {user?.firstName || user?.username}!
+            {t('dashboard.welcome', { name: user?.firstName || user?.username })}
             {isAdmin() && (
               <span className="ml-3 text-sm font-normal px-3 py-1 bg-sky-500/20 text-sky-300 rounded-full border border-sky-400/30">
                 Administrator
@@ -171,8 +173,8 @@ const DashboardPage = () => {
           </h1>
           <p className="text-surface-400 max-w-lg">
             {isAdmin() 
-              ? "Manage users, view statistics, and oversee all aspects of the member registry system."
-              : "View and manage organization members from your personalized dashboard."
+              ? t('dashboard.adminSubtitle')
+              : t('dashboard.userSubtitle')
             }
           </p>
         </div>
@@ -182,19 +184,19 @@ const DashboardPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <StatCard
           icon={Users}
-          label="Total Members"
+          label={t('dashboard.totalMembers')}
           value={loading ? '...' : stats.totalMembers}
           color="bg-brand-500"
           link="/members"
-          subtitle="View all members"
+          subtitle={t('dashboard.viewAllMembers')}
         />
         <ActionCard
           icon={UserPlus}
-          label="Quick Actions"
-          value="Add Member"
+          label={t('dashboard.quickActions')}
+          value={t('dashboard.addMember')}
           color="bg-emerald-500"
           onClick={() => setShowAddModal(true)}
-          subtitle="Register new member"
+          subtitle={t('dashboard.registerMember')}
         />
       </div>
 
@@ -202,15 +204,15 @@ const DashboardPage = () => {
       <div className="card">
         <div className="px-6 py-4 border-b border-surface-200 flex items-center justify-between">
           <h2 className="font-display text-xl font-semibold text-surface-800">
-            Recent Members
+            {t('dashboard.recentMembers')}
           </h2>
           <Link to="/members" className="text-brand-600 hover:text-brand-700 text-sm font-medium">
-            View all →
+            {t('dashboard.viewAll')} →
           </Link>
         </div>
         <div className="divide-y divide-surface-100">
           {loading ? (
-            <div className="p-8 text-center text-surface-500">Loading...</div>
+            <div className="p-8 text-center text-surface-500">{t('dashboard.loading')}</div>
           ) : stats.recentMembers.length > 0 ? (
             stats.recentMembers.map((member, index) => (
               <div 
@@ -226,6 +228,11 @@ const DashboardPage = () => {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-surface-800 truncate">{member.name}</p>
                   <p className="text-sm text-surface-500 truncate">{member.email}</p>
+                  {member.createdBy && (
+                    <p className="text-xs text-surface-400 mt-0.5">
+                      {t('members.addedBy', { user: member.createdBy })}
+                    </p>
+                  )}
                 </div>
                 <div className="hidden sm:block text-sm text-surface-400 font-mono">
                   {member.phoneNumber}
@@ -234,7 +241,7 @@ const DashboardPage = () => {
             ))
           ) : (
             <div className="p-8 text-center text-surface-500">
-              No members yet. Create your first member!
+              {t('dashboard.noMembers')}
             </div>
           )}
         </div>
@@ -248,16 +255,16 @@ const DashboardPage = () => {
           setFormData({ name: '', email: '', phoneNumber: '' });
           setFormErrors({});
         }}
-        title="Add New Member"
+        title={t('modal.addMemberTitle')}
       >
         <form onSubmit={handleAddMember} className="space-y-4">
           <p className="text-surface-500 text-sm mb-4">
-            Register a new member to the organization.
+            {t('dashboard.registerMember')}
           </p>
 
           {/* Name Field */}
           <div>
-            <label className="label">Full Name *</label>
+            <label className="label">{t('form.name')} *</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" />
               <input
@@ -278,7 +285,7 @@ const DashboardPage = () => {
 
           {/* Email Field */}
           <div>
-            <label className="label">Email Address *</label>
+            <label className="label">{t('form.email')} *</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" />
               <input
@@ -299,7 +306,7 @@ const DashboardPage = () => {
 
           {/* Phone Number Field */}
           <div>
-            <label className="label">Phone Number *</label>
+            <label className="label">{t('form.phoneNumber')} *</label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" />
               <input
@@ -330,14 +337,14 @@ const DashboardPage = () => {
               className="btn-secondary flex-1"
               disabled={submitting}
             >
-              Cancel
+              {t('form.cancel')}
             </button>
             <button
               type="submit"
               className="btn-primary flex-1"
               disabled={submitting}
             >
-              {submitting ? 'Adding...' : 'Add Member'}
+              {submitting ? t('dashboard.adding') : t('form.submit')}
             </button>
           </div>
         </form>

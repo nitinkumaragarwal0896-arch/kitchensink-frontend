@@ -142,4 +142,24 @@ export const sessionAPI = {
   logoutAll: () => api.post('/auth/logout-all'),
 };
 
+// Job APIs (for background/async operations)
+export const jobAPI = {
+  getById: (jobId) => api.get(`/jobs/${jobId}`),
+  getAll: () => api.get('/jobs'),
+  getActive: () => api.get('/jobs/active'),
+  cancel: (jobId) => api.post(`/jobs/${jobId}/cancel`),
+  delete: (jobId) => api.delete(`/jobs/${jobId}`),
+  // Bulk operations
+  bulkDeleteMembers: (memberIds) => api.post('/members/bulk-delete', { memberIds }),
+  excelUploadMembers: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/members/excel-upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+};
+
 export default api;
