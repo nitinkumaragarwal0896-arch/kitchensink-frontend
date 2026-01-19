@@ -65,7 +65,8 @@ export const authAPI = {
 
 // Member APIs
 export const memberAPI = {
-  getAll: () => api.get('/members'),
+  getAll: ({  page = 0, size = 10, sort = 'name,asc' } = {}) => 
+    api.get(`/members?page=${page}&size=${size}&sort=${sort}`),
   getById: (id) => api.get(`/members/${id}`),
   create: (member) => api.post('/members', member),
   update: (id, member) => api.put(`/members/${id}`, member),

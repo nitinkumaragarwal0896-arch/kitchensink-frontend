@@ -13,7 +13,9 @@ import {
   User,
   X,
   Check,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 const MembersPage = () => {
@@ -32,14 +34,29 @@ const MembersPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
 
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [isFirst, setIsFirst] = useState(true);
+  const [isLast, setIsLast] = useState(true);
+
   useEffect(() => {
     fetchMembers();
-  }, []);
+  }, [page, size]); // Re-fetch when page or size changes
 
   const fetchMembers = async () => {
     try {
-      const response = await memberAPI.getAll();
-      setMembers(response.data);
+      setLoading(true);
+      const response = await memberAPI.getAll({ page, size, sort: 'name,asc' });
+      
+      // The API now returns paginated response
+      setMembers(response.data.content);
+      setTotalPages(response.data.totalPages);
+      setTotalElements(response.data.totalElements);
+      setIsFirst(response.data.first);
+      setIsLast(response.data.last);
       setAccessDenied(false);
     } catch (error) {
       if (error.response?.status === 403) {
@@ -141,6 +158,7 @@ const MembersPage = () => {
     }
   };
 
+  // Client-side filtering (TODO: Move to server-side search in future)
   const filteredMembers = members.filter((member) =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -150,6 +168,28 @@ const MembersPage = () => {
   const canCreate = hasPermission('member:create') || true; // Default to true for USER role
   const canUpdate = hasPermission('member:update') || true;
   const canDelete = hasPermission('member:delete') || isAdmin();
+
+  // Pagination handlers
+  const handlePreviousPage = () => {
+    if (!isFirst) {
+      setPage(page - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (!isLast) {
+      setPage(page + 1);
+    }
+  };
+
+  const handlePageSizeChange = (newSize) => {
+    setSize(newSize);
+    setPage(0); // Reset to first page when changing size
+  };
+
+  // Calculate display range
+  const startItem = totalElements === 0 ? 0 : (page * size) + 1;
+  const endItem = Math.min((page + 1) * size, totalElements);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -296,11 +336,99 @@ const MembersPage = () => {
           </table>
         </div>
 
-        {/* Footer */}
+        {/* Pagination Footer */}
         <div className="px-6 py-4 bg-surface-50 border-t border-surface-200">
-          <p className="text-sm text-surface-500">
-            {filteredMembers.length} member{filteredMembers.length !== 1 ? 's' : ''} total
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Left: Items info */}
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-surface-500">
+                Showing {startItem}-{endItem} of {totalElements} members
+              </p>
+              
+              {/* Page size selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-surface-500">Show:</span>
+                <select
+                  value={size}
+                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                  className="text-sm border border-surface-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Right: Pagination controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePreviousPage}
+                  disabled={isFirst}
+                  className={`p-2 rounded-lg border transition-colors ${
+                    isFirst
+                      ? 'border-surface-200 text-surface-300 cursor-not-allowed'
+                      : 'border-surface-200 text-surface-600 hover:bg-surface-100 hover:border-surface-300'
+                  }`}
+                  title="Previous page"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+
+                {/* Page numbers */}
+                <div className="flex items-center gap-1">
+                  {[...Array(totalPages)].map((_, index) => {
+                    // Show first page, last page, current page, and pages around current
+                    const showPage =
+                      index === 0 || // First page
+                      index === totalPages - 1 || // Last page
+                      Math.abs(index - page) <= 1; // Pages near current
+
+                    if (!showPage) {
+                      // Show ellipsis for skipped pages
+                      if (index === page - 2 || index === page + 2) {
+                        return (
+                          <span key={index} className="px-2 text-surface-400">
+                            ...
+                          </span>
+                        );
+                      }
+                      return null;
+                    }
+
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => setPage(index)}
+                        className={`min-w-[2.5rem] h-10 px-3 rounded-lg font-medium transition-colors ${
+                          index === page
+                            ? 'bg-brand-600 text-white'
+                            : 'text-surface-600 hover:bg-surface-100'
+                        }`}
+                      >
+                        {index + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={handleNextPage}
+                  disabled={isLast}
+                  className={`p-2 rounded-lg border transition-colors ${
+                    isLast
+                      ? 'border-surface-200 text-surface-300 cursor-not-allowed'
+                      : 'border-surface-200 text-surface-600 hover:bg-surface-100 hover:border-surface-300'
+                  }`}
+                  title="Next page"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

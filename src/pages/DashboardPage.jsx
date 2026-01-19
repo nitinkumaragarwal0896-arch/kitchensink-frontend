@@ -18,11 +18,15 @@ const DashboardPage = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await memberAPI.getAll();
-      const members = response.data;
+      // Fetch first page with size=5 to get recent members
+      const response = await memberAPI.getAll({ page: 0, size: 5, sort: 'name,asc' });
+      
+      // API now returns paginated response: { content: [...], totalElements: N, ... }
+      const { content, totalElements } = response.data;
+      
       setStats({
-        totalMembers: members.length,
-        recentMembers: members.slice(0, 5),
+        totalMembers: totalElements,
+        recentMembers: content,
       });
     } catch (error) {
       // Silently handle - user might not have member:read permission
