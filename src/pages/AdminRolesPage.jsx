@@ -207,7 +207,7 @@ const AdminRolesPage = () => {
         isOpen={showModal}
         onClose={closeModal}
         title={editingRole ? 'Edit Role' : 'Create New Role'}
-        size="lg"
+        size="xl"
       >
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>

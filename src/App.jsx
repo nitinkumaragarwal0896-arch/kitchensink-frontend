@@ -6,8 +6,11 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 // Pages
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import MembersPage from './pages/MembersPage';
+import ProfilePage from './pages/ProfilePage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import AdminRolesPage from './pages/AdminRolesPage';
 import ActiveSessionsPage from './pages/ActiveSessionsPage';
@@ -60,6 +63,12 @@ function AppRoutes() {
       <Route path="/register" element={
         <PublicRoute><RegisterPage /></PublicRoute>
       } />
+      <Route path="/forgot-password" element={
+        <PublicRoute><ForgotPasswordPage /></PublicRoute>
+      } />
+      <Route path="/reset-password" element={
+        <PublicRoute><ResetPasswordPage /></PublicRoute>
+      } />
 
       {/* Protected Routes */}
       <Route path="/" element={
@@ -68,6 +77,7 @@ function AppRoutes() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="members" element={<MembersPage />} />
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="sessions" element={<ActiveSessionsPage />} />
         <Route path="admin/users" element={
           <ProtectedRoute adminOnly><AdminUsersPage /></ProtectedRoute>

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { Eye, EyeOff, UserPlus } from 'lucide-react';
+import { validateField, validateEmail, validatePassword, validateName, validatePhone } from '../utils/validation';
+import { Eye, EyeOff, UserPlus, AlertCircle, Mail, Phone, User } from 'lucide-react';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -12,8 +13,10 @@ const RegisterPage = () => {
     confirmPassword: '',
     firstName: '',
     lastName: '',
+    phoneNumber: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const { register } = useAuth();
@@ -22,26 +25,51 @@ const RegisterPage = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: null }));
-    }
+    
+    // Real-time validation as user types
+    const errorMessage = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: errorMessage }));
   };
 
   const validate = () => {
     const newErrors = {};
     
-    if (formData.username.length < 3) {
+    // Validate username
+    if (!formData.username || formData.username.trim().length < 3) {
       newErrors.username = 'Username must be at least 3 characters';
     }
     
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+    // Validate first name
+    const firstNameResult = validateName(formData.firstName);
+    if (!firstNameResult.valid) {
+      newErrors.firstName = firstNameResult.error;
     }
     
-    if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+    // Validate last name
+    const lastNameResult = validateName(formData.lastName);
+    if (!lastNameResult.valid) {
+      newErrors.lastName = lastNameResult.error;
     }
     
+    // Validate email
+    const emailResult = validateEmail(formData.email);
+    if (!emailResult.valid) {
+      newErrors.email = emailResult.error;
+    }
+    
+    // Validate phone
+    const phoneResult = validatePhone(formData.phoneNumber);
+    if (!phoneResult.valid) {
+      newErrors.phoneNumber = phoneResult.error;
+    }
+    
+    // Validate password
+    const passwordResult = validatePassword(formData.password);
+    if (!passwordResult.valid) {
+      newErrors.password = passwordResult.error;
+    }
+    
+    // Validate confirm password
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
@@ -53,7 +81,13 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validate()) return;
+    if (!validate()) {
+      const firstError = Object.values(errors).find(err => err);
+      if (firstError) {
+        toast.error(firstError);
+      }
+      return;
+    }
     
     setLoading(true);
 
@@ -64,14 +98,28 @@ const RegisterPage = () => {
         password: formData.password,
         firstName: formData.firstName,
         lastName: formData.lastName,
+        phoneNumber: formData.phoneNumber,
       });
       toast.success('Account created successfully! Please sign in.');
       navigate('/login');
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
-      if (error.response?.data?.fieldErrors) {
-        setErrors(error.response.data.fieldErrors);
+      // Extract the specific error message from backend
+      const errorData = error.response?.data;
+      const message = errorData?.error || errorData?.message || 'Registration failed';
+      
+      // Handle field-specific errors
+      if (errorData?.fieldErrors) {
+        setErrors(errorData.fieldErrors);
+      } else {
+        // If it's a generic error about username or email, highlight the field
+        if (message.toLowerCase().includes('username')) {
+          setErrors({ username: message });
+        } else if (message.toLowerCase().includes('email')) {
+          setErrors({ email: message });
+        }
       }
+      
+      // Show the specific error message to user
       toast.error(message);
     } finally {
       setLoading(false);
@@ -118,31 +166,58 @@ const RegisterPage = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* First Name & Last Name */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="label">First Name</label>
+                  <label className="label">
+                    <User className="w-4 h-4 inline mr-1" />
+                    First Name *
+                  </label>
                   <input
                     type="text"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="input"
+                    className={errors.firstName ? 'input-error' : 'input'}
                     placeholder="John"
+                    required
                   />
+                  {errors.firstName && (
+                    <p className="flex items-center gap-1 text-red-500 text-xs mt-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.firstName}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="label">Last Name</label>
+                  <label className="label">
+                    <User className="w-4 h-4 inline mr-1" />
+                    Last Name *
+                  </label>
                   <input
                     type="text"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="input"
+                    className={errors.lastName ? 'input-error' : 'input'}
                     placeholder="Doe"
+                    required
                   />
+                  {errors.lastName && (
+                    <p className="flex items-center gap-1 text-red-500 text-xs mt-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.lastName}
+                    </p>
+                  )}
                 </div>
               </div>
+              {!errors.firstName && !errors.lastName && (
+                <p className="text-xs text-surface-500 -mt-2">
+                  ℹ️ Letters, spaces, hyphens, and apostrophes only (2-50 characters)
+                </p>
+              )}
 
+              {/* Username */}
               <div>
                 <label className="label">Username *</label>
                 <input
@@ -155,26 +230,76 @@ const RegisterPage = () => {
                   required
                 />
                 {errors.username && (
-                  <p className="text-red-500 text-sm mt-1">{errors.username}</p>
+                  <p className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.username}
+                  </p>
+                )}
+                {!errors.username && (
+                  <p className="text-xs text-surface-500 mt-1">
+                    ℹ️ Minimum 3 characters, unique username
+                  </p>
                 )}
               </div>
 
+              {/* Email */}
               <div>
-                <label className="label">Email *</label>
+                <label className="label">
+                  <Mail className="w-4 h-4 inline mr-1" />
+                  Email *
+                </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
                   className={errors.email ? 'input-error' : 'input'}
-                  placeholder="john@example.com"
+                  placeholder="john.doe@example.com"
                   required
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                  <p className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.email}
+                  </p>
+                )}
+                {!errors.email && (
+                  <p className="text-xs text-surface-500 mt-1">
+                    ℹ️ Valid email address (e.g., john@example.com)
+                  </p>
                 )}
               </div>
 
+              {/* Phone Number */}
+              <div>
+                <label className="label">
+                  <Phone className="w-4 h-4 inline mr-1" />
+                  Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  className={errors.phoneNumber ? 'input-error' : 'input'}
+                  placeholder="9876543210"
+                  maxLength="10"
+                  required
+                />
+                {errors.phoneNumber && (
+                  <p className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.phoneNumber}
+                  </p>
+                )}
+                {!errors.phoneNumber && (
+                  <p className="text-xs text-surface-500 mt-1">
+                    ℹ️ 10 digits starting with 6, 7, 8, or 9 (without +91)
+                  </p>
+                )}
+              </div>
+
+              {/* Password */}
               <div>
                 <label className="label">Password *</label>
                 <div className="relative">
@@ -184,7 +309,7 @@ const RegisterPage = () => {
                     value={formData.password}
                     onChange={handleChange}
                     className={`${errors.password ? 'input-error' : 'input'} pr-12`}
-                    placeholder="Min. 8 characters"
+                    placeholder="Create a strong password"
                     required
                   />
                   <button
@@ -196,23 +321,47 @@ const RegisterPage = () => {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                  <p className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.password}
+                  </p>
+                )}
+                {!errors.password && (
+                  <p className="text-xs text-surface-500 mt-1">
+                    ℹ️ Min 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character (!@#$%^&*)
+                  </p>
                 )}
               </div>
 
+              {/* Confirm Password */}
               <div>
                 <label className="label">Confirm Password *</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className={errors.confirmPassword ? 'input-error' : 'input'}
-                  placeholder="Repeat your password"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    onCopy={(e) => e.preventDefault()}
+                    onPaste={(e) => e.preventDefault()}
+                    onCut={(e) => e.preventDefault()}
+                    className={`${errors.confirmPassword ? 'input-error' : 'input'} pr-12`}
+                    placeholder="Repeat your password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
                 {errors.confirmPassword && (
-                  <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+                  <p className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.confirmPassword}
+                  </p>
                 )}
               </div>
 

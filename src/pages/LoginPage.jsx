@@ -21,7 +21,9 @@ const LoginPage = () => {
       toast.success('Welcome back!');
       navigate('/dashboard');
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed';
+      // Extract specific error message from backend
+      const errorData = error.response?.data;
+      const message = errorData?.error || errorData?.message || 'Login failed';
       toast.error(message);
     } finally {
       setLoading(false);
@@ -116,6 +118,14 @@ const LoginPage = () => {
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
+                </div>
+                <div className="mt-2 text-right">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
                 </div>
               </div>
 

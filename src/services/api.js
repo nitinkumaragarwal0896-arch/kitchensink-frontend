@@ -32,22 +32,40 @@ api.interceptors.response.use(
       
       try {
         const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
-          const response = await axios.post(`${API_BASE}/auth/refresh`, {}, {
-            headers: { Authorization: `Bearer ${refreshToken}` }
-          });
-          
-          const { accessToken, refreshToken: newRefreshToken } = response.data;
-          localStorage.setItem('accessToken', accessToken);
-          localStorage.setItem('refreshToken', newRefreshToken);
-          
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return api(originalRequest);
+        if (!refreshToken) {
+          console.error('[API] No refresh token available, redirecting to login');
+          localStorage.clear();
+          window.location.href = '/login';
+          return Promise.reject(error);
         }
+        
+        console.log('[API] Access token expired, attempting refresh...');
+        const response = await axios.post(`${API_BASE}/auth/refresh`, {}, {
+          headers: { Authorization: `Bearer ${refreshToken}` }
+        });
+        
+        const { accessToken, refreshToken: newRefreshToken } = response.data;
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', newRefreshToken);
+        
+        console.log('[API] Token refreshed successfully');
+        
+        // 🔧 FIX: Trigger user info refresh by dispatching custom event
+        window.dispatchEvent(new CustomEvent('tokenRefreshed'));
+        
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return api(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        console.error('[API] Token refresh failed:', refreshError.response?.status, refreshError.response?.data);
+        console.log('[API] Clearing tokens and redirecting to login');
+        localStorage.clear();
+        
+        // Dispatch logout event to clear AuthContext
+        window.dispatchEvent(new CustomEvent('forceLogout'));
+        
+        // Force redirect to login
         window.location.href = '/login';
+        return Promise.reject(refreshError);
       }
     }
     
@@ -61,12 +79,27 @@ export const authAPI = {
   register: (userData) => api.post('/auth/register', userData),
   refresh: () => api.post('/auth/refresh'),
   me: () => api.get('/auth/me'),
+  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+  validateResetToken: (token) => api.post('/auth/validate-reset-token', { token }),
+  resetPassword: (token, newPassword) => api.post('/auth/reset-password', { token, newPassword }),
+};
+
+// Profile APIs
+export const profileAPI = {
+  get: () => api.get('/profile'),
+  update: (data) => api.put('/profile', data),
+  changePassword: (data) => api.post('/profile/change-password', data),
 };
 
 // Member APIs
 export const memberAPI = {
-  getAll: ({  page = 0, size = 10, sort = 'name,asc' } = {}) => 
-    api.get(`/members?page=${page}&size=${size}&sort=${sort}`),
+  getAll: ({ page = 0, size = 10, sort = 'name,asc', search } = {}) => {
+    let url = `/members?page=${page}&size=${size}&sort=${sort}`;
+    if (search && search.trim()) {
+      url += `&search=${encodeURIComponent(search.trim())}`;
+    }
+    return api.get(url);
+  },
   getById: (id) => api.get(`/members/${id}`),
   create: (member) => api.post('/members', member),
   update: (id, member) => api.put(`/members/${id}`, member),

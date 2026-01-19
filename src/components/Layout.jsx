@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   Users, 
@@ -11,7 +11,8 @@ import {
   X,
   ChevronDown,
   Settings,
-  Monitor
+  Monitor,
+  User
 } from 'lucide-react';
 
 const Layout = () => {
@@ -102,25 +103,6 @@ const Layout = () => {
             </>
           )}
         </nav>
-
-        {/* User info at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-surface-200 bg-white">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center">
-              <span className="text-brand-700 font-semibold text-sm">
-                {user?.username?.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-surface-800 truncate">
-                {user?.firstName || user?.username}
-              </p>
-              <p className="text-xs text-surface-500 truncate">
-                {user?.roles?.[0]?.replace('ROLE_', '')}
-              </p>
-            </div>
-          </div>
-        </div>
       </aside>
 
       {/* Main content */}
@@ -141,16 +123,19 @@ const Layout = () => {
               {/* User dropdown */}
               <div className="relative">
                 <button
+                  type="button"
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-surface-100 transition-colors"
                 >
                   <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center">
                     <span className="text-brand-700 font-semibold text-sm">
-                      {user?.username?.charAt(0).toUpperCase()}
+                      {user?.firstName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || 'U'}
                     </span>
                   </div>
                   <span className="hidden sm:block text-sm font-medium text-surface-700">
-                    {user?.username}
+                    {user?.firstName && user?.lastName 
+                      ? `${user.firstName} ${user.lastName}` 
+                      : user?.username || 'User'}
                   </span>
                   <ChevronDown className="w-4 h-4 text-surface-500" />
                 </button>
@@ -161,11 +146,26 @@ const Layout = () => {
                       className="fixed inset-0 z-40"
                       onClick={() => setUserMenuOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-surface-200 py-2 z-50 animate-fade-in">
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-surface-200 py-2 z-50 animate-fade-in">
                       <div className="px-4 py-2 border-b border-surface-100">
-                        <p className="text-sm font-medium text-surface-800">{user?.username}</p>
-                        <p className="text-xs text-surface-500">{user?.email}</p>
+                        <p className="text-sm font-medium text-surface-800">
+                          {user?.firstName && user?.lastName 
+                            ? `${user.firstName} ${user.lastName}` 
+                            : user?.username}
+                        </p>
+                        <p className="text-xs text-surface-500 truncate">{user?.email}</p>
+                        {user?.firstName && user?.lastName && (
+                          <p className="text-xs text-surface-400 mt-0.5">@{user?.username}</p>
+                        )}
                       </div>
+                      <Link
+                        to="/profile"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors"
+                      >
+                        <User className="w-4 h-4" />
+                        My Profile
+                      </Link>
                       <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"

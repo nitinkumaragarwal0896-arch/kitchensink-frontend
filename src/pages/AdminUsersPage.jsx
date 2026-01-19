@@ -12,7 +12,8 @@ import {
   Calendar,
   MoreVertical,
   Edit,
-  UserPlus
+  UserPlus,
+  Trash2
 } from 'lucide-react';
 
 const AdminUsersPage = () => {
@@ -23,7 +24,7 @@ const AdminUsersPage = () => {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedRoles, setSelectedRoles] = useState([]);
+  const [selectedRole, setSelectedRole] = useState(''); // Changed to single role
   const [actionMenuUser, setActionMenuUser] = useState(null);
   const [formData, setFormData] = useState({
     username: '',
@@ -79,33 +80,68 @@ const AdminUsersPage = () => {
     setActionMenuUser(null);
   };
 
+  const handleDelete = async (user) => {
+    // Only allow deletion of disabled users
+    if (user.enabled) {
+      toast.error('Cannot delete an enabled user. Please disable the user first.');
+      return;
+    }
+
+    // Confirmation dialog
+    if (!window.confirm(
+      `Are you sure you want to DELETE user "${user.username}"?\n\n` +
+      `This action is PERMANENT and cannot be undone!\n\n` +
+      `All user data will be permanently removed.`
+    )) {
+      return;
+    }
+
+    try {
+      await userAPI.delete(user.id);
+      toast.success(`User ${user.username} permanently deleted`);
+      fetchData();
+    } catch (error) {
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to delete user';
+      toast.error(errorMsg);
+    }
+    setActionMenuUser(null);
+  };
+
   const openRoleModal = (user) => {
     setSelectedUser(user);
-    setSelectedRoles(user.roles || []);
+    setSelectedRole(user.roles && user.roles.length > 0 ? user.roles[0] : '');
     setShowRoleModal(true);
     setActionMenuUser(null);
   };
 
   const handleRoleChange = async () => {
     try {
-      const currentRoles = new Set(selectedUser.roles);
-      const newRoles = new Set(selectedRoles);
+      if (!selectedRole) {
+        toast.error('Please select a role');
+        return;
+      }
+
+      const currentRole = selectedUser.roles && selectedUser.roles.length > 0 ? selectedUser.roles[0] : null;
       
-      const rolesToAdd = selectedRoles.filter(r => !currentRoles.has(r));
-      const rolesToRemove = [...currentRoles].filter(r => !newRoles.has(r));
-
-      if (rolesToAdd.length > 0) {
-        await userAPI.assignRoles(selectedUser.id, rolesToAdd);
-      }
-      if (rolesToRemove.length > 0) {
-        await userAPI.removeRoles(selectedUser.id, rolesToRemove);
+      // If role hasn't changed, just close the modal
+      if (currentRole === selectedRole) {
+        setShowRoleModal(false);
+        return;
       }
 
-      toast.success('Roles updated successfully');
+      // Remove old role if exists
+      if (currentRole) {
+        await userAPI.removeRoles(selectedUser.id, [currentRole]);
+      }
+      
+      // Add new role
+      await userAPI.assignRoles(selectedUser.id, [selectedRole]);
+
+      toast.success('Role updated successfully');
       setShowRoleModal(false);
       fetchData();
     } catch (error) {
-      const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to update roles';
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to update role';
       toast.error(errorMsg);
     }
   };
@@ -306,6 +342,18 @@ const AdminUsersPage = () => {
                                   Unlock Account
                                 </button>
                               )}
+                              {!user.enabled && (
+                                <>
+                                  <div className="border-t border-surface-200 my-1"></div>
+                                  <button
+                                    onClick={() => handleDelete(user)}
+                                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete User
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </>
                         )}
@@ -327,26 +375,25 @@ const AdminUsersPage = () => {
       >
         <div className="space-y-4">
           <p className="text-surface-500">
-            Select the roles to assign to this user.
+            Select a role to assign to this user. Each user can have only one role.
           </p>
           
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {roles.map((role) => (
               <label
                 key={role.id}
-                className="flex items-center gap-3 p-3 rounded-lg border border-surface-200 hover:bg-surface-50 cursor-pointer transition-colors"
+                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                  selectedRole === role.name
+                    ? 'border-brand-500 bg-brand-50'
+                    : 'border-surface-200 hover:bg-surface-50'
+                }`}
               >
                 <input
-                  type="checkbox"
-                  checked={selectedRoles.includes(role.name)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedRoles([...selectedRoles, role.name]);
-                    } else {
-                      setSelectedRoles(selectedRoles.filter(r => r !== role.name));
-                    }
-                  }}
-                  className="w-4 h-4 text-brand-600 rounded border-surface-300 focus:ring-brand-500"
+                  type="radio"
+                  name="role"
+                  checked={selectedRole === role.name}
+                  onChange={() => setSelectedRole(role.name)}
+                  className="w-4 h-4 text-brand-600 border-surface-300 focus:ring-brand-500"
                 />
                 <div>
                   <p className="font-medium text-surface-800">{role.name}</p>
