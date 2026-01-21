@@ -23,7 +23,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
@@ -32,11 +32,11 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
       
       {/* Modal */}
       <div 
-        className={`relative w-full ${sizeClasses[size]} bg-white rounded-2xl shadow-xl animate-fade-in my-8`}
+        className={`relative w-full ${sizeClasses[size]} bg-white rounded-2xl shadow-xl animate-fade-in my-8 max-h-[90vh] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-200 flex-shrink-0">
           <h3 className="font-display text-xl font-semibold text-surface-800">
             {title}
           </h3>
@@ -49,7 +49,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
         </div>
 
         {/* Content */}
-        <div className="px-6 py-4 max-h-[calc(100vh-160px)] overflow-y-auto">
+        <div className="px-6 py-4 overflow-y-auto flex-1">
           {children}
         </div>
       </div>

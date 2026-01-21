@@ -85,6 +85,9 @@ const resources = {
       "form.register": "Register",
       "form.update": "Update",
       
+      // Modal
+      "modal.addMemberTitle": "Register new member",
+      
       // Audit Info
       "audit.addedBy": "by {{user}}",
       "audit.timeAgo": "{{time}} ago",
@@ -248,6 +251,9 @@ const resources = {
       "form.register": "पंजीकरण करें",
       "form.update": "अपडेट करें",
       
+      // Modal
+      "modal.addMemberTitle": "नया सदस्य पंजीकृत करें",
+      
       // Audit Info
       "audit.addedBy": "{{user}} द्वारा",
       "audit.timeAgo": "{{time}} पहले",
@@ -410,6 +416,9 @@ const resources = {
       "form.cancel": "Cancelar",
       "form.register": "Registrar",
       "form.update": "Actualizar",
+      
+      // Modal
+      "modal.addMemberTitle": "Registrar nuevo miembro",
       
       // Audit Info
       "audit.addedBy": "por {{user}}",

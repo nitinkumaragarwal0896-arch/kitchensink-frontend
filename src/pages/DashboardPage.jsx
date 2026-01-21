@@ -112,16 +112,20 @@ const DashboardPage = () => {
   const StatCard = ({ icon: Icon, label, value, color, link, subtitle }) => (
     <Link 
       to={link}
-      className="card p-6 hover:shadow-glow transition-all duration-300 group"
+      className="card p-8 hover:shadow-glow transition-all duration-300 group h-full flex items-center"
     >
-      <div className="flex items-center gap-4">
-        <div className={`p-3 rounded-xl ${color} transition-transform group-hover:scale-110`}>
-          <Icon className="w-6 h-6 text-white" />
+      <div className="flex items-center gap-5 w-full">
+        <div className={`p-4 rounded-xl ${color} transition-transform group-hover:scale-110 flex-shrink-0`}>
+          <Icon className="w-8 h-8 text-white" />
         </div>
-        <div className="flex-1">
-          <p className="text-sm text-surface-500">{label}</p>
-          <p className="text-2xl font-display font-bold text-surface-800">{value}</p>
-          {subtitle && <p className="text-xs text-surface-400 mt-1">{subtitle}</p>}
+        <div className="flex-1 min-w-0">
+          <p className="text-base text-surface-500 font-medium">{label}</p>
+          <p className="text-4xl font-display font-bold text-surface-800 mt-1">{value}</p>
+          {subtitle && (
+            <p className="text-sm text-brand-600 font-medium mt-2 group-hover:text-brand-700 transition-colors">
+              {subtitle} →
+            </p>
+          )}
         </div>
       </div>
     </Link>
@@ -130,16 +134,20 @@ const DashboardPage = () => {
   const ActionCard = ({ icon: Icon, label, value, color, onClick, subtitle }) => (
     <button
       onClick={onClick}
-      className="card p-6 hover:shadow-glow transition-all duration-300 group text-left w-full"
+      className="card p-8 hover:shadow-glow transition-all duration-300 group text-left w-full h-full flex items-center"
     >
-      <div className="flex items-center gap-4">
-        <div className={`p-3 rounded-xl ${color} transition-transform group-hover:scale-110`}>
-          <Icon className="w-6 h-6 text-white" />
+      <div className="flex items-center gap-5 w-full">
+        <div className={`p-4 rounded-xl ${color} transition-transform group-hover:scale-110 flex-shrink-0`}>
+          <Icon className="w-8 h-8 text-white" />
         </div>
-        <div className="flex-1">
-          <p className="text-sm text-surface-500">{label}</p>
-          <p className="text-2xl font-display font-bold text-surface-800">{value}</p>
-          {subtitle && <p className="text-xs text-surface-400 mt-1">{subtitle}</p>}
+        <div className="flex-1 min-w-0">
+          <p className="text-base text-surface-500 font-medium">{label}</p>
+          <p className="text-3xl font-display font-bold text-surface-800 mt-1">{value}</p>
+          {subtitle && (
+            <p className="text-sm text-emerald-600 font-medium mt-2 group-hover:text-emerald-700 transition-colors">
+              {subtitle}
+            </p>
+          )}
         </div>
       </div>
     </button>
@@ -180,70 +188,82 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <StatCard
-          icon={Users}
-          label={t('dashboard.totalMembers')}
-          value={loading ? '...' : stats.totalMembers}
-          color="bg-brand-500"
-          link="/members"
-          subtitle={t('dashboard.viewAllMembers')}
-        />
-        <ActionCard
-          icon={UserPlus}
-          label={t('dashboard.quickActions')}
-          value={t('dashboard.addMember')}
-          color="bg-emerald-500"
-          onClick={() => setShowAddModal(true)}
-          subtitle={t('dashboard.registerMember')}
-        />
-      </div>
-
-      {/* Recent Members */}
-      <div className="card">
-        <div className="px-6 py-4 border-b border-surface-200 flex items-center justify-between">
-          <h2 className="font-display text-xl font-semibold text-surface-800">
-            {t('dashboard.recentMembers')}
-          </h2>
-          <Link to="/members" className="text-brand-600 hover:text-brand-700 text-sm font-medium">
-            {t('dashboard.viewAll')} →
-          </Link>
-        </div>
-        <div className="divide-y divide-surface-100">
-          {loading ? (
-            <div className="p-8 text-center text-surface-500">{t('dashboard.loading')}</div>
-          ) : stats.recentMembers.length > 0 ? (
-            stats.recentMembers.map((member, index) => (
-              <div 
-                key={member.id} 
-                className="px-6 py-4 flex items-center gap-4 hover:bg-surface-50 transition-colors animate-fade-in"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center">
-                  <span className="text-brand-700 font-semibold">
-                    {member.name?.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-surface-800 truncate">{member.name}</p>
-                  <p className="text-sm text-surface-500 truncate">{member.email}</p>
-                  {member.createdBy && (
-                    <p className="text-xs text-surface-400 mt-0.5">
-                      {t('members.addedBy', { user: member.createdBy })}
-                    </p>
-                  )}
-                </div>
-                <div className="hidden sm:block text-sm text-surface-400 font-mono">
-                  {member.phoneNumber}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="p-8 text-center text-surface-500">
-              {t('dashboard.noMembers')}
+      {/* Main Content Grid: Recent Members + Stats/Actions Side-by-Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Members - Takes 2/3 width on large screens */}
+        <div className="lg:col-span-2">
+          <div className="card h-full">
+            <div className="px-6 py-4 border-b border-surface-200 flex items-center justify-between">
+              <h2 className="font-display text-xl font-semibold text-surface-800">
+                {t('dashboard.recentMembers')}
+              </h2>
+              <Link to="/members" className="text-brand-600 hover:text-brand-700 text-sm font-medium">
+                {t('dashboard.viewAll')} →
+              </Link>
             </div>
-          )}
+            <div className="divide-y divide-surface-100">
+              {loading ? (
+                <div className="p-8 text-center text-surface-500">{t('dashboard.loading')}</div>
+              ) : stats.recentMembers.length > 0 ? (
+                stats.recentMembers.map((member, index) => (
+                  <div 
+                    key={member.id} 
+                    className="px-6 py-4 flex items-center gap-4 hover:bg-surface-50 transition-colors animate-fade-in"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-brand-700 font-semibold">
+                        {member.name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-surface-800 truncate">{member.name}</p>
+                      <p className="text-sm text-surface-500 truncate">{member.email}</p>
+                      {member.createdBy && (
+                        <p className="text-xs text-surface-400 mt-0.5">
+                          {t('members.addedBy', { user: member.createdBy })}
+                        </p>
+                      )}
+                    </div>
+                    <div className="hidden sm:block text-sm text-surface-400 font-mono flex-shrink-0">
+                      {member.phoneNumber}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center text-surface-500">
+                  {t('dashboard.noMembers')}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Stats & Actions - Takes 1/3 width on large screens, stacked vertically */}
+        <div className="lg:col-span-1 flex flex-col gap-6">
+          {/* Total Members Card - Takes 1/2 of vertical space */}
+          <div className="flex-1">
+            <StatCard
+              icon={Users}
+              label={t('dashboard.totalMembers')}
+              value={loading ? '...' : stats.totalMembers}
+              color="bg-brand-500"
+              link="/members"
+              subtitle={t('dashboard.viewAllMembers')}
+            />
+          </div>
+          
+          {/* Add Member Card - Takes 1/2 of vertical space */}
+          <div className="flex-1">
+            <ActionCard
+              icon={UserPlus}
+              label={t('dashboard.quickActions')}
+              value={t('dashboard.addMember')}
+              color="bg-emerald-500"
+              onClick={() => setShowAddModal(true)}
+              subtitle={t('dashboard.registerMember')}
+            />
+          </div>
         </div>
       </div>
 
@@ -306,7 +326,7 @@ const DashboardPage = () => {
 
           {/* Phone Number Field */}
           <div>
-            <label className="label">{t('form.phoneNumber')} *</label>
+            <label className="label">{t('form.phone')} *</label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" />
               <input

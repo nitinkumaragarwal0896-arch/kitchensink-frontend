@@ -49,6 +49,11 @@ const AdminRolesPage = () => {
 
   const openModal = (role = null) => {
     if (role) {
+      // Prevent editing ADMIN role
+      if (role.name === 'ADMIN') {
+        toast.error('Cannot edit ADMIN role - it is protected to maintain system stability');
+        return;
+      }
       setEditingRole(role);
       setFormData({
         name: role.name,
@@ -85,22 +90,27 @@ const AdminRolesPage = () => {
   };
 
   const handleDelete = async (role) => {
-    if (role.systemRole) {
-      toast.error('Cannot delete system roles');
-      return;
-    }
-
-    if (!window.confirm(`Are you sure you want to delete the ${role.name} role?`)) {
-      return;
-    }
-
-    try {
-      await roleAPI.delete(role.id);
-      toast.success('Role deleted successfully');
-      fetchData();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete role');
-    }
+    // Role deletion is disabled to prevent system instability
+    toast.error('Role deletion is currently disabled to maintain data integrity');
+    return;
+    
+    // Original deletion logic (kept for reference):
+    // if (role.systemRole) {
+    //   toast.error('Cannot delete system roles');
+    //   return;
+    // }
+    //
+    // if (!window.confirm(`Are you sure you want to delete the ${role.name} role?`)) {
+    //   return;
+    // }
+    //
+    // try {
+    //   await roleAPI.delete(role.id);
+    //   toast.success('Role deleted successfully');
+    //   fetchData();
+    // } catch (error) {
+    //   toast.error(error.response?.data?.message || 'Failed to delete role');
+    // }
   };
 
   const togglePermission = (permission) => {
@@ -180,8 +190,8 @@ const AdminRolesPage = () => {
                 </div>
               </div>
 
-              {!role.systemRole && (
-                <div className="flex gap-2 pt-4 border-t border-surface-100">
+              <div className="flex gap-2 pt-4 border-t border-surface-100">
+                {!role.systemRole && role.name !== 'ADMIN' && (
                   <button
                     onClick={() => openModal(role)}
                     className="btn-secondary flex-1 py-2 text-sm"
@@ -189,14 +199,24 @@ const AdminRolesPage = () => {
                     <Edit className="w-4 h-4" />
                     Edit
                   </button>
-                  <button
-                    onClick={() => handleDelete(role)}
-                    className="btn-ghost text-red-600 hover:bg-red-50 py-2 px-3"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
+                )}
+                {(role.systemRole || role.name === 'ADMIN') && (
+                  <div className="flex-1 py-2 px-3 text-sm text-surface-500 bg-surface-50 rounded-lg flex items-center justify-center gap-2 border border-surface-200">
+                    <Lock className="w-4 h-4" />
+                    <span>System Role - Protected</span>
+                  </div>
+                )}
+                
+                {/* Delete button - disabled for all roles */}
+                <button
+                  onClick={() => handleDelete(role)}
+                  disabled
+                  className="btn-ghost py-2 px-3 opacity-40 cursor-not-allowed"
+                  title="Role deletion is disabled to maintain data integrity"
+                >
+                  <Trash2 className="w-4 h-4 text-surface-400" />
+                </button>
+              </div>
             </div>
           ))
         )}

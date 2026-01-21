@@ -66,14 +66,22 @@ const ActiveSessionsPage = () => {
   };
 
   const handleLogoutAll = async () => {
-    if (!window.confirm('Are you sure you want to logout from all devices? This will end all your active sessions except the current one.')) {
+    const confirmed = window.confirm(
+      '⚠️ Warning: Logout from ALL devices?\n\n' +
+      'This will immediately end ALL active sessions, including your current one.\n\n' +
+      'You will be logged out and redirected to the login page.\n\n' +
+      'Are you sure you want to continue?'
+    );
+    
+    if (!confirmed) {
       return;
     }
 
     try {
       await sessionAPI.logoutAll();
-      toast.success('Logged out from all devices');
-      fetchSessions();
+      toast.success('Logged out from all devices. Redirecting to login...');
+      // Give user time to see the message, then logout
+      setTimeout(() => logout(), 1500);
     } catch (error) {
       console.error('Failed to logout from all devices:', error);
       toast.error('Failed to logout from all devices');
@@ -117,7 +125,7 @@ const ActiveSessionsPage = () => {
             className="btn-danger flex items-center gap-2"
           >
             <LogOut className="w-5 h-5" />
-            Logout All Other Devices
+            Logout All Devices
           </button>
         )}
       </div>
@@ -231,11 +239,13 @@ const ActiveSessionsPage = () => {
           <div className="text-sm text-blue-900">
             <p className="font-semibold mb-1">Session Management</p>
             <p className="text-blue-700 mb-2">
-              You can have up to <strong>5 active sessions</strong> at a time. When you exceed this limit, the oldest session will be automatically logged out. 
-              Use "Logout All Other Devices" if you suspect unauthorized access.
+              You can have up to <strong>5 active sessions</strong> at a time. When you exceed this limit, the oldest session will be automatically logged out.
+            </p>
+            <p className="text-blue-700 mb-2">
+              <strong>Security Tip:</strong> Use "Logout All Devices" if you suspect unauthorized access. This will terminate ALL sessions including your current one, and you'll need to log in again.
             </p>
             <p className="text-blue-700 text-xs mt-2 border-t border-blue-200 pt-2">
-              <strong>Note:</strong> After revoking a session, the access token remains valid for up to 15 minutes, but the user cannot get a new access token. 
+              <strong>Note:</strong> After revoking a session, the access token remains valid for up to 1 hour, but the user cannot get a new access token. 
               If you revoke your current session, you will be logged out immediately.
             </p>
           </div>

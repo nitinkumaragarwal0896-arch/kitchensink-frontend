@@ -29,7 +29,10 @@ const AdminUsersPage = () => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    password: ''
+    password: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: ''
   });
   const [formErrors, setFormErrors] = useState({});
 
@@ -154,7 +157,7 @@ const AdminUsersPage = () => {
       await authAPI.register(formData);
       toast.success('User created successfully');
       setShowCreateUserModal(false);
-      setFormData({ username: '', email: '', password: '' });
+      setFormData({ username: '', email: '', password: '', firstName: '', lastName: '', phoneNumber: '' });
       fetchData();
     } catch (error) {
       if (error.response?.data) {
@@ -467,6 +470,61 @@ const AdminUsersPage = () => {
 
           <div>
             <label className="block text-sm font-medium text-surface-700 mb-1">
+              First Name
+            </label>
+            <input
+              type="text"
+              value={formData.firstName}
+              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              className={`input ${formErrors.firstName ? 'border-red-500' : ''}`}
+              placeholder="Enter first name"
+              required
+            />
+            {formErrors.firstName && (
+              <p className="mt-1 text-sm text-red-600">{formErrors.firstName}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-surface-700 mb-1">
+              Last Name
+            </label>
+            <input
+              type="text"
+              value={formData.lastName}
+              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              className={`input ${formErrors.lastName ? 'border-red-500' : ''}`}
+              placeholder="Enter last name"
+              required
+            />
+            {formErrors.lastName && (
+              <p className="mt-1 text-sm text-red-600">{formErrors.lastName}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-surface-700 mb-1">
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              value={formData.phoneNumber}
+              onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+              className={`input ${formErrors.phoneNumber ? 'border-red-500' : ''}`}
+              placeholder="9876543210"
+              pattern="[6-9][0-9]{9}"
+              required
+            />
+            {formErrors.phoneNumber && (
+              <p className="mt-1 text-sm text-red-600">{formErrors.phoneNumber}</p>
+            )}
+            <p className="mt-1 text-xs text-surface-500">
+              10-digit Indian mobile number starting with 6, 7, 8, or 9
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-surface-700 mb-1">
               Password
             </label>
             <input
@@ -481,7 +539,7 @@ const AdminUsersPage = () => {
               <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
             )}
             <p className="mt-1 text-xs text-surface-500">
-              Password must be at least 8 characters long
+              Password must be at least 8 characters with uppercase, lowercase, number, and special character
             </p>
           </div>
 
@@ -490,7 +548,7 @@ const AdminUsersPage = () => {
               type="button"
               onClick={() => {
                 setShowCreateUserModal(false);
-                setFormData({ username: '', email: '', password: '' });
+                setFormData({ username: '', email: '', password: '', firstName: '', lastName: '', phoneNumber: '' });
                 setFormErrors({});
               }}
               className="btn-secondary flex-1"
