@@ -31,9 +31,34 @@ const RecentActivity = () => {
   useEffect(() => {
     fetchActivities();
 
-    // Refresh every 5 seconds
-    const interval = setInterval(fetchActivities, 5000);
-    return () => clearInterval(interval);
+    // 🔧 FIX: Poll every 30 seconds for activity updates
+    const interval = setInterval(() => {
+      fetchActivities();
+    }, 30000); // 30 seconds
+
+    // Listen for job completion events to refresh immediately
+    const handleJobCompleted = (event) => {
+      const { jobType } = event.detail || {};
+      if (jobType === 'BULK_DELETE' || jobType === 'EXCEL_UPLOAD') {
+        console.log('[RecentActivity] Job completed, refreshing activities...');
+        fetchActivities();
+      }
+    };
+
+    // 🔧 FIX: Listen for member changes (create/update/delete from UI) to refresh immediately
+    const handleMemberChanged = () => {
+      console.log('[RecentActivity] Member changed, refreshing activities...');
+      fetchActivities();
+    };
+
+    window.addEventListener('jobCompleted', handleJobCompleted);
+    window.addEventListener('memberChanged', handleMemberChanged);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('jobCompleted', handleJobCompleted);
+      window.removeEventListener('memberChanged', handleMemberChanged);
+    };
   }, []);
 
   const fetchActivities = async () => {

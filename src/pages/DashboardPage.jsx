@@ -84,6 +84,9 @@ const DashboardPage = () => {
       setFormData({ name: '', email: '', phoneNumber: '' });
       setFormErrors({});
       fetchStats(); // Refresh stats
+      
+      // 🔧 FIX: Notify RecentActivity to refresh immediately
+      window.dispatchEvent(new CustomEvent('memberChanged'));
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || t('toast.operationFailed');
       toast.error(errorMsg);

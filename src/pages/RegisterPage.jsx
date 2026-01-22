@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { validateField, validateEmail, validatePassword, validateName, validatePhone } from '../utils/validation';
-import { Eye, EyeOff, UserPlus, AlertCircle, Mail, Phone, User } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, AlertCircle, Mail, Phone, User, Users } from 'lucide-react';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -136,9 +136,19 @@ const RegisterPage = () => {
         </div>
         
         <div className="relative z-10 flex flex-col justify-center px-16">
-          <h1 className="font-display text-5xl font-bold text-white mb-4">
-            Join Kitchen<span className="text-brand-400">sink</span>
-          </h1>
+          <div className="flex items-center gap-4 mb-6">
+            {/* Logo Icon */}
+            <div className="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-500 rounded-2xl flex items-center justify-center shadow-xl">
+              <Users className="w-8 h-8 text-white" />
+            </div>
+            {/* Logo Text */}
+            <div>
+              <h1 className="font-display text-5xl font-bold text-white leading-none">
+                MemberHub
+              </h1>
+              <p className="text-xl font-semibold text-brand-400 leading-none mt-1">PRO</p>
+            </div>
+          </div>
           <p className="text-surface-400 text-lg max-w-md leading-relaxed">
             Create your account to access the member registration system and manage your organization's contacts.
           </p>
@@ -149,10 +159,18 @@ const RegisterPage = () => {
       <div className="flex-1 flex items-center justify-center p-8 bg-surface-50">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
-          <div className="lg:hidden text-center mb-8">
-            <h1 className="font-display text-3xl font-bold text-surface-800">
-              Kitchen<span className="text-brand-600">sink</span>
-            </h1>
+          <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
+            {/* Logo Icon */}
+            <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            {/* Logo Text */}
+            <div>
+              <h1 className="font-display text-3xl font-bold text-surface-800 leading-none">
+                MemberHub
+              </h1>
+              <p className="text-sm font-semibold text-brand-600 leading-none mt-0.5">PRO</p>
+            </div>
           </div>
 
           <div className="card p-8">

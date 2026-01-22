@@ -1,6 +1,6 @@
-# 🎨 Kitchensink Modernized - Frontend
+# 🎨 MemberHub Pro - Frontend
 
-A modern, responsive React frontend for the Kitchensink application, built with React 18, Vite, and Tailwind CSS. Features include JWT authentication, role-based access control, internationalization, real-time job tracking, and a beautiful, accessible UI.
+A modern, responsive React frontend for **MemberHub Pro**, an enterprise-grade member management platform built with React 18, Vite, and Tailwind CSS. Features include JWT authentication, role-based access control, internationalization (Hindi, Spanish, English), real-time job tracking, bulk operations, Excel upload, and a beautiful, accessible UI.
 
 > **Project Context:** This is the frontend for the MongoDB Modernization Factory Developer Candidate Challenge, showcasing modern React development practices and enterprise-grade features.
 
@@ -114,6 +114,8 @@ git clone https://github.com/nitinkumaragarwal0896-arch/kitchensink-frontend.git
 cd ../kitchensink-modernized
 ./start-all.sh
 ```
+
+> **Note:** The repository name remains `kitchensink-frontend` for continuity, but the application is branded as **MemberHub Pro**.
 
 #### Option 2: Manual Installation
 

@@ -23,7 +23,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
@@ -32,7 +32,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
       
       {/* Modal */}
       <div 
-        className={`relative w-full ${sizeClasses[size]} bg-white rounded-2xl shadow-xl animate-fade-in my-8 max-h-[90vh] flex flex-col`}
+        className={`relative w-full ${sizeClasses[size]} bg-white rounded-2xl shadow-xl animate-fade-in max-h-[calc(100vh-4rem)] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

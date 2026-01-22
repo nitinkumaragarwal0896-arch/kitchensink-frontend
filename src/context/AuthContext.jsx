@@ -31,8 +31,28 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     };
 
+    // ✅ NEW: Listen for logout from other tabs (storage event)
+    const handleStorageChange = (e) => {
+      // Detect when another tab clears the accessToken
+      if (e.key === 'accessToken' && e.newValue === null) {
+        console.log('[AuthContext] 🚪 Logout detected from another tab - logging out this tab too');
+        setUser(null);
+        setLoading(false);
+        
+        // Redirect to login if not already there
+        if (window.location.pathname !== '/login' && 
+            window.location.pathname !== '/register' &&
+            !window.location.pathname.startsWith('/reset-password') &&
+            !window.location.pathname.startsWith('/forgot-password')) {
+          console.log('[AuthContext] Redirecting to login page');
+          window.location.href = '/login';
+        }
+      }
+    };
+
     window.addEventListener('tokenRefreshed', handleTokenRefresh);
     window.addEventListener('forceLogout', handleForceLogout);
+    window.addEventListener('storage', handleStorageChange); // ← NEW!
 
     // 🔧 FIX: Periodically refresh user info every 5 minutes (safety net)
     // This ensures permissions stay up-to-date even if token refresh event is missed
@@ -51,6 +71,7 @@ export const AuthProvider = ({ children }) => {
     return () => {
       window.removeEventListener('tokenRefreshed', handleTokenRefresh);
       window.removeEventListener('forceLogout', handleForceLogout);
+      window.removeEventListener('storage', handleStorageChange); // ← NEW!
       clearInterval(refreshInterval);
       clearInterval(expiryCheckInterval);
     };

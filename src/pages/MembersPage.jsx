@@ -197,6 +197,9 @@ const MembersPage = () => {
         toast.success(t('toast.deleteSuccess'));
         setSelectedMembers([]);
         
+        // 🔧 FIX: Notify RecentActivity to refresh immediately
+        window.dispatchEvent(new CustomEvent('memberChanged'));
+        
         // Check if this was the last item on the current page
         if (members.length === 1 && page > 0) {
           setPage(page - 1);
@@ -305,6 +308,9 @@ const MembersPage = () => {
       }
       closeModal();
       fetchMembers();
+      
+      // 🔧 FIX: Notify RecentActivity to refresh immediately
+      window.dispatchEvent(new CustomEvent('memberChanged'));
     } catch (error) {
       // Handle validation errors from backend (e.g., duplicate email)
       if (error.response?.data) {
@@ -351,6 +357,9 @@ const MembersPage = () => {
     try {
       await memberAPI.delete(member.id);
       toast.success('Member deleted successfully');
+      
+      // 🔧 FIX: Notify RecentActivity to refresh immediately
+      window.dispatchEvent(new CustomEvent('memberChanged'));
       
       // Check if this was the last item on the current page
       if (members.length === 1 && page > 0) {

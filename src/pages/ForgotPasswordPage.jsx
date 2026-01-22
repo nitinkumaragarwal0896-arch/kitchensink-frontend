@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { validateEmail } from '../utils/validation';
 import toast from 'react-hot-toast';
-import { Mail, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle, AlertCircle, Users } from 'lucide-react';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -81,13 +81,20 @@ const ForgotPasswordPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-surface-50 to-surface-100 p-4">
       <div className="w-full max-w-md">
         {/* Logo/Header */}
-        <div className="text-center mb-8 animate-fade-in">
-          <Link to="/" className="inline-block">
-            <h1 className="font-display text-4xl font-bold bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
-              Kitchen<span className="text-accent-500">sink</span>
-            </h1>
+        <div className="flex items-center justify-center gap-3 mb-8 animate-fade-in">
+          <Link to="/" className="flex items-center gap-3">
+            {/* Logo Icon */}
+            <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            {/* Logo Text */}
+            <div>
+              <h1 className="font-display text-3xl font-bold text-surface-800 leading-none">
+                MemberHub
+              </h1>
+              <p className="text-sm font-semibold text-brand-600 leading-none mt-0.5">PRO</p>
+            </div>
           </Link>
-          <p className="text-surface-500 mt-2">Member Registry System</p>
         </div>
 
         {/* Forgot Password Card */}

@@ -33,18 +33,22 @@ const JobsSidebar = ({ onJobClick }) => {
     return () => window.removeEventListener('jobCreated', handleJobCreated);
   }, []);
 
-  // Poll jobs continuously (every 0.5s if active jobs, every 2s otherwise)
+  // Poll jobs only when there are active jobs (IN_PROGRESS or PENDING)
   useEffect(() => {
     const hasActiveJobs = jobs.some(
       job => job.status === 'IN_PROGRESS' || job.status === 'PENDING'
     );
 
-    // Poll every 0.5s if there are active jobs, every 2s otherwise
-    const pollInterval = hasActiveJobs ? 500 : 2000;
-    
+    // Only poll if there are active jobs
+    if (!hasActiveJobs) {
+      console.log('[JobsSidebar] No active jobs, stopping polling');
+      return;
+    }
+
+    console.log('[JobsSidebar] Active jobs detected, polling every 500ms');
     const interval = setInterval(() => {
       fetchJobs();
-    }, pollInterval);
+    }, 500);
 
     return () => clearInterval(interval);
   }, [jobs]);

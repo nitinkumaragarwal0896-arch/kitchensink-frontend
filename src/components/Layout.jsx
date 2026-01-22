@@ -87,9 +87,19 @@ const Layout = () => {
       `}>
         {/* Logo */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-surface-200">
-          <h1 className="font-display text-xl font-semibold text-surface-800">
-            Kitchen<span className="text-brand-600">sink</span>
-          </h1>
+          <div className="flex items-center gap-3">
+            {/* Logo Icon */}
+            <div className="w-9 h-9 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center shadow-md">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            {/* Logo Text */}
+            <div>
+              <h1 className="font-display text-lg font-bold text-surface-800 leading-none">
+                MemberHub
+              </h1>
+              <p className="text-xs font-medium text-brand-600 leading-none mt-0.5">PRO</p>
+            </div>
+          </div>
           <button 
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden text-surface-500 hover:text-surface-700"
